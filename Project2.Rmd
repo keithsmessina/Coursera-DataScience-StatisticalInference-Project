@@ -1,0 +1,56 @@
+---
+title: "Statistical Inference - Tooth Growth Data Analysis"
+author: "Keith S Messina"
+date: "August 21, 2015"
+output: html_document
+---
+## Introduction
+This analysis uses the ToothGrowth dataset in the R datasets package to determine the statistical significance of two different delivery methods of Vitamin C and their effect on tooth growth in guinea pigs.
+
+## Summary of Data
+The data used in this analysis shows the response in length of the teeth in 10 guinea pigs to three dose levels of Vitamin C delivered in two different ways: orange juice and ascorbic acid.  
+
+There are 60 observations of three variables in the dataset: length of the tooth (number), supplement type (factor with two levels: VC or OJ), dose of Vitamin C (number in milligrams).  
+
+A further summary of the data can be seen below:
+```{r echo = TRUE}
+library(datasets)
+summary(ToothGrowth)
+```  
+
+We can tidy up the data a bit and give the variables and factors more appropriate names.
+```{r echo = TRUE}
+tidyTooth <- ToothGrowth
+colnames(tidyTooth) <- c("length", "delivery method", "dosage size")
+tidyTooth$`delivery method` <- as.character(tidyTooth$`delivery method`)
+tidyTooth$`delivery method`[tidyTooth$"delivery method" == "OJ"] <- "Orange Juice"
+tidyTooth$`delivery method`[tidyTooth$"delivery method" == "VC"] <- "Ascorbic Acid"
+tidyTooth$`delivery method` <- as.factor(tidyTooth$`delivery method`)
+```
+
+## Exploratory Analysis
+First, we will take a look at a plot of the data to see if we can spot any trends worth investigating in the data.
+```{r echo = TRUE, warning = FALSE}
+library(ggplot2)
+ggplot(data = tidyTooth) + geom_point(aes(x = `dosage size`, y = length, color = `delivery method`))
+```  
+
+From the data, we can see what appears to be a trend of increasing length of teeth when we increase the dosage of Vitamin C. From just a cursory review, it appears that the Ascorbic Acid delivery method has a greater effect on teeth length, but we'll take a look at the data a bit more closely to make that call.
+
+## Data Analysis
+First, we'll calculate some standard values for the data. The mean of the data for the `Orange Juice` delivery method is `r orangejuice.mean <- mean(tidyTooth$length[tidyTooth$"delivery method" == "Orange Juice"])` `r round(orangejuice.mean, 2)` and mean of the data for the `Ascorbic Acid` delivery method is `r ascorbic.mean <- mean(tidyTooth$length[tidyTooth$"delivery method" == "Ascorbic Acid"])` `r round(ascorbic.mean, 2)`. The standard deviation and variance of the data for the `Orange Juice` delivery method is `r orangejuice.sd <- sd(tidyTooth$length[tidyTooth$"delivery method" == "Orange Juice"])` `r round(orangejuice.sd, 2)` and `r orangejuice.var <- sd(tidyTooth$length[tidyTooth$"delivery method" == "Orange Juice"])^2` `r round(orangejuice.var, 2)` respectively and the standard deviation and variance of the data for the `Ascorbic Acid` delivery method is `r ascorbic.sd <- sd(tidyTooth$length[tidyTooth$"delivery method" == "Ascorbic Acid"])` `r round(ascorbic.sd, 2)` and `r ascorbic.var <- sd(tidyTooth$length[tidyTooth$"delivery method" == "Ascorbic Acid"])^2` `r round(ascorbic.var, 2)` respectively. There are `r orangejuice.n <- nrow(tidyTooth[tidyTooth$"delivery method" == "Orange Juice", ])` `r orangejuice.n` observations using the `Orange Juice` delivery method and `r ascorbic.n <- nrow(tidyTooth[tidyTooth$"delivery method" == "Ascorbic Acid", ])` `r ascorbic.n` observations using the `Ascorbic Acid` delivery method.
+
+The 95% confidence level of the mean for each delivery method are given below. As we can see, there is an overlap of the mean in the delivery methods, which says that there may not be enough evidence to confidently proclaim that one delivery method is better than the other.  
+Orange Juice: `r orangejuice.mean + c(-1, 1) * qt(.975, orangejuice.n - 1) * orangejuice.sd/sqrt(orangejuice.n)`  
+Acorbic Acid: `r ascorbic.mean + c(-1, 1) * qt(.975, ascorbic.n - 1) * ascorbic.sd/sqrt(ascorbic.n)`   
+
+A two-sided t-test of the data gives us the following information:
+```{r echo = TRUE}
+t.test(tidyTooth$length[tidyTooth$"delivery method" == "Ascorbic Acid"], tidyTooth$length[tidyTooth$"delivery method" == "Ascorbic Acid"], alternative = "two.sided", paired= FALSE)
+
+```
+
+
+
+
+

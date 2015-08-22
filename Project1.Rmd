@@ -1,0 +1,94 @@
+---
+title: 'Statistical Inference: Comparing Simulated Exponentially Distributed Data
+  to Theroetical Exponential Distribution'
+author: "Keith S Messina"
+date: "August 21, 2015"
+output: html_document
+---
+## Overview
+To provide an example of the Central Limit Theorem (CLT) in action, we will look at simulations of data using the R random number-generating exponential function, `rexp()`, and compare it to what we expect to see from a theoretical standpoint. We will first look at how the random data is distributed. Then we will show how the mean of this data approaches the theoretical mean, while simultaneously showing that the mean is better approximated with larger numbers of simulations. We will also look at the distribution of the means of multiple sets of data and compare its variability to the theoretical variability. 
+
+## Parameters
+In the comparison, we will be looking at the exponential distribution with a lambda of `.2`. The mean of the exponential distribution is 1/lambda, so in this case we are looking at a theoretical mean of `5`. The standard deviation of the exponential distribution is also given as 1/lambda, or `5` in this case. I took the data simulation number to be `1000` and the sample sizes of my data sets to be `40`.
+```{r echo = TRUE, message = FALSE, warning = FALSE}
+lambda <- .2
+mean.theoretical <- 1/lambda
+sd.theoretical <- 1/lambda
+sim.size <- 1000
+sample.size <- 40
+set.seed(367)
+```  
+
+## Simulations
+The first simulation I ran was a a simple generation of 1000 data points using the `rexp()` function.
+```{r echo = TRUE, message = FALSE, warning = FALSE}
+simulated.data <- data.frame(count = 1:sim.size, exp = c(rexp(sim.size, rate = lambda)))
+```  
+
+To show how the simulated means approached the theoretical mean over the course of many simulations, I took the data simulated in the first simulation and evaluated the cumulative mean of the data, saving that to a new data frame, `cummean.sim`.
+```{r echo = TRUE, message = FALSE, warning = FALSE}
+cummean.sim <- NULL
+cummean.sim <- data.frame(cumsum(simulated.data)/1:sim.size)
+cummean.sim$count <- cummean.sim$count * 2
+```  
+
+Next, to show the variance of the data compared to the theoretical, I ran a simulation of `40` random exponentially distributed numbers and took `1000` iterations of this. I then found the Standard Error for the samples to show that the Standard Error is approximately normally distributed around `0` as predicted by the CLT. This shows the amount of variation in the data as compared to the theoretical variation.
+```{r echo = TRUE, message = FALSE, warning = FALSE}
+var.samples <- NULL
+for (i in 1 : sim.size){
+  sample.data <- rexp(sim.size, rate = lambda)
+  var.samples <- c(var.samples, 
+                   (mean(sample.data) - (1/lambda))/((1/lambda)/sqrt(sample.size)))
+}
+var.samples <- as.data.frame(var.samples)
+```
+
+Finally, to show the sample mean distribution, I ran a simulation of `40` random exponentially distributed numbers and took `1000` iterations of this. The mean of each iteration was saved to a vector and then a histogram of this vector was plotted to show the distribution of the means of the simulations.
+```{r echo = TRUE, message = FALSE, warning = FALSE}
+mean.samples <- NULL
+for (i in 1 : sim.size){
+  sample.data <- rexp(sim.size, rate = lambda)
+  mean.samples <- c(mean.samples, mean(sample.data))
+}
+mean.samples <- as.data.frame(mean.samples)
+```  
+
+## Sample Mean versus Theoretical Mean
+To see how the mean of the sample approaches the mean of the population, we look at the cumulative mean of an ever-increasing sample size as it approaches the population size. We can assume the population of this data is the theoretical exponential distribution, in which case the population mean is the theoretical mean of the exponential distribution of 1/lambda or `5` in this case. The blue line is at the theoretical value of `5`.
+```{r echo = TRUE, message = FALSE, warning = FALSE, fig.height = 3}
+library(ggplot2)
+qplot(x = count, y = exp, data = cummean.sim) + 
+  geom_line(aes(x = c(-Inf, Inf), y = 1/lambda), color = "blue") +
+  labs(list(title = "Cumulative Mean of Simulated Data", x = "Count",
+  y = "Mean")) +
+  ylim(0, 10) 
+```
+
+## Sample Variance versus Theoretical Variance
+If we take a look at the variance of samples of `40` observations using the Standard Error, we can see that their distribution is approaching a normal distribution. This distribution should be nomrally distributed around `0` as predicted by the CLT.
+```{r echo = TRUE, message = FALSE, warning = FALSE, fig.height = 3}
+samp.var.plot <- ggplot(var.samples, aes(x=var.samples))
+samp.var.plot <- samp.var.plot + geom_histogram(color = "black", fill = "white") +
+  labs(list(title = "Distribution of Simulated Data Variance", x = "Sample STD Error",
+  y = "Count"))
+print(samp.var.plot)
+```
+
+## Distribution
+First let's look at the distribution of the simulated data as a point of reference. As we would expect, this data has an exponential distribution.
+```{r echo = TRUE, message = FALSE, warning = FALSE, fig.height = 3}
+dist.exp.plot <- ggplot(simulated.data, aes(x=exp))
+dist.exp.plot <- dist.exp.plot + geom_histogram(color = "black", fill = "white") + labs(list(
+  title = "Distribution of Simulated Exponential Data", x = "Values",
+  y = "Count"))
+print(dist.exp.plot)
+```  
+
+If we take samples of this population of size `40`, we should find that their means are distributed normally about `0` according to the CLT.
+```{r echo = TRUE, message = FALSE, warning = FALSE, fig.height = 3}
+samp.mean.plot <- ggplot(mean.samples, aes(x = mean.samples))
+samp.mean.plot <- samp.mean.plot + geom_histogram(color = "black", fill = "white") +
+  labs(list(title = "Distribution of Simulated Data Means", x = "Mean",
+  y = "Count"))
+print(samp.mean.plot)
+```
