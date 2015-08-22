@@ -119,7 +119,7 @@ qplot(x = count, y = exp, data = cummean.sim) +
 </div>
 <div id="sample-variance-versus-theoretical-variance" class="section level2">
 <h2>Sample Variance versus Theoretical Variance</h2>
-<p>If we take a look at the variance of samples of <code>40</code> observations using the Standard Error, we can see that their distribution is approaching a normal distribution. This distribution should be distributed around <code>0</code> as predicted by the CLT.</p>
+<p>If we take a look at the variance of samples of <code>40</code> observations using the Standard Error, we can see that their distribution is approaching a normal distribution. This distribution should be nomrally distributed around <code>0</code> as predicted by the CLT.</p>
 <pre class="r"><code>samp.var.plot &lt;- ggplot(var.samples, aes(x=var.samples))
 samp.var.plot &lt;- samp.var.plot + geom_histogram(color = &quot;black&quot;, fill = &quot;white&quot;) +
   labs(list(title = &quot;Distribution of Simulated Data Variance&quot;, x = &quot;Sample STD Error&quot;,
